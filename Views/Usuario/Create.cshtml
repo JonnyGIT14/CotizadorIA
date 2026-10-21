@@ -1,0 +1,70 @@
+@model CreateUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Crear Usuario";
+}
+
+<h2>Crear Usuario</h2>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div>@successMessage</div>
+}
+
+<form method="post" asp-controller="Usuario" asp-action="Create">
+    <div asp-validation-summary="All"></div>
+
+    <div>
+        <label asp-for="Nombre"></label><br />
+        <input asp-for="Nombre" />
+        <span asp-validation-for="Nombre"></span>
+    </div>
+
+    <br />
+
+    <div>
+        <label asp-for="ApellidoPaterno"></label><br />
+        <input asp-for="ApellidoPaterno" />
+        <span asp-validation-for="ApellidoPaterno"></span>
+    </div>
+
+    <br />
+
+    <div>
+        <label asp-for="ApellidoMaterno"></label><br />
+        <input asp-for="ApellidoMaterno" />
+        <span asp-validation-for="ApellidoMaterno"></span>
+    </div>
+
+    <br />
+
+    <div>
+        <label asp-for="Email"></label><br />
+        <input asp-for="Email" type="email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+
+    <br />
+
+    <div>
+        <label asp-for="Password"></label><br />
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+
+    <br />
+
+    <div>
+        <label asp-for="RolId"></label><br />
+        <select asp-for="RolId" asp-items="ViewBag.Roles">
+            <option value="">Seleccione un rol</option>
+        </select>
+        <span asp-validation-for="RolId"></span>
+    </div>
+
+    <br />
+
+    <button type="submit">
+        Guardar Usuario
+    </button>
+</form>
