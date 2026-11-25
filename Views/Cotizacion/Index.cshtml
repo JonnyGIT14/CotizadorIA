@@ -1,0 +1,53 @@
+@model IReadOnlyList<CotizadorIA.Models.Cotizacion>
+@{
+    ViewData["Title"] = "Cotizaciones";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Cotizaciones</h1>
+        <p class="text-muted mb-0">Consulta y crea cotizaciones comerciales.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Nueva cotización</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string mensaje)
+{
+    <div class="alert alert-success">@mensaje</div>
+}
+
+<div class="table-responsive card">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Folio</th>
+                <th>Cliente</th>
+                <th>Vendedor</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th class="text-end">Total (USD)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var cotizacion in Model)
+        {
+            <tr>
+                <td class="text-nowrap">@cotizacion.Folio</td>
+                <td>@cotizacion.NombreCliente</td>
+                <td>@cotizacion.NombreVendedor</td>
+                <td>@cotizacion.FechaCotizacion.ToString("d")</td>
+                <td><span class="badge text-bg-secondary">@cotizacion.Estado</span></td>
+                <td class="text-end">@cotizacion.Total.ToString("N2")</td>
+                <td class="text-end">
+                    <a asp-action="Details" asp-route-id="@cotizacion.Id" class="btn btn-sm btn-outline-primary">Ver</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay cotizaciones.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

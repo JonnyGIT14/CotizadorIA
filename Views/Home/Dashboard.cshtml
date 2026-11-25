@@ -1,7 +1,36 @@
-<h1>Bienvenido Administrador</h1>
+@{
+    ViewData["Title"] = "Inicio";
+}
 
-<hr />
+<div class="py-4">
+    <h1 class="h2">Bienvenido a CotizadorIA</h1>
+    <p class="text-muted">Administra el catálogo y prepara cotizaciones comerciales.</p>
+</div>
 
-<a href="/Usuario/Create">
-    Crear Usuario
-</a>
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card card-body h-100">
+            <h2 class="h5">Clientes</h2>
+            <p class="text-muted">Consulta clientes y mantén actualizados sus factores.</p>
+            <a asp-controller="Cliente" asp-action="Index" class="btn btn-outline-primary mt-auto">Administrar clientes</a>
+        </div>
+
+        <div class="mt-4">
+            <a asp-controller="Usuario" asp-action="CreateUser" class="btn btn-outline-secondary">Administrar usuarios</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-body h-100">
+            <h2 class="h5">Productos</h2>
+            <p class="text-muted">Actualiza el catálogo, precios y clasificación.</p>
+            <a asp-controller="Producto" asp-action="Index" class="btn btn-outline-primary mt-auto">Administrar productos</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-body h-100">
+            <h2 class="h5">Cotizaciones</h2>
+            <p class="text-muted">Calcula y guarda cotizaciones con sus reglas comerciales.</p>
+            <a asp-controller="Cotizacion" asp-action="Index" class="btn btn-primary mt-auto">Ver cotizaciones</a>
+        </div>
+    </div>
+</div>

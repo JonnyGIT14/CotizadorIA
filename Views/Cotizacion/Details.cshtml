@@ -1,0 +1,210 @@
+@model CotizadorIA.Models.Cotizacion
+@{
+    ViewData["Title"] = "Detalle de cotización";
+}
+
+<div class="quote-screen-details">
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a asp-action="Index" class="text-decoration-none" data-no-print>&larr; Volver a cotizaciones</a>
+        <h1 class="h2 mt-2 mb-1">@Model.Folio</h1>
+        <p class="text-muted mb-0">Fecha de cotización: @Model.FechaCotizacion.ToString("d") · Creada @Model.FechaCreacion.ToLocalTime().ToString("g") · @Model.Estado</p>
+    </div>
+    <div class="d-flex align-items-start gap-2" data-no-print>
+        <button type="button" class="btn btn-primary" id="export-quote-pdf">Exportar a PDF</button>
+        <span class="badge text-bg-secondary fs-6">@Model.Moneda</span>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string mensaje)
+{
+    <div class="alert alert-success">@mensaje</div>
+}
+@if (ViewBag.Avisos is List<string> avisos && avisos.Count > 0)
+{
+    <div class="alert alert-warning">
+        <strong>Consideraciones comerciales</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var aviso in avisos)
+            {
+                <li>@aviso</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card card-body h-100">
+            <h2 class="h6 text-muted">Cliente</h2>
+            <strong>@Model.NombreCliente</strong>
+            <span>@(Model.CodigoSapCliente ?? "Sin código SAP")</span>
+            @if (!string.IsNullOrWhiteSpace(Model.DireccionCliente))
+            {
+                <span>@Model.DireccionCliente</span>
+            }
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card card-body h-100">
+            <h2 class="h6 text-muted">Cuenta que creó la cotización</h2>
+            <strong>@Model.NombreVendedor</strong>
+            @if (Model.Usuario is not null)
+            {
+                <span>@Model.Usuario.Email</span>
+            }
+            <span>Vigencia: @(Model.FechaVigencia?.ToLocalTime().ToString("d") ?? "Sin fecha definida")</span>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive card mb-4">
+    <table class="table align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>SKU</th>
+                <th>Producto</th>
+                <th class="text-end">Cantidad</th>
+                <th>Unidad</th>
+                <th class="text-end">Precio neto unitario</th>
+                <th class="text-end">Descuento</th>
+                <th class="text-end">Importe neto</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var linea in Model.Detalles)
+        {
+            <tr>
+                <td>@linea.CodigoCatalogo @if (linea.EsProductoTercero) { <span class="badge text-bg-info">Tercero</span> }</td>
+                <td>@linea.DescripcionProducto</td>
+                <td class="text-end">@linea.Cantidad.ToString("N3")</td>
+                <td>@linea.Unidad</td>
+                <td class="text-end">@linea.PrecioNetoUnitario.ToString("N4")</td>
+                <td class="text-end">@linea.PorcentajeDescuento.ToString("N2")%</td>
+                <td class="text-end">@linea.ImporteNeto.ToString("N2")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="row justify-content-end">
+    <div class="col-md-5 col-lg-4">
+        <dl class="row mb-0">
+            <dt class="col-7">Subtotal</dt><dd class="col-5 text-end">@Model.Subtotal.ToString("N2") @Model.Moneda</dd>
+            <dt class="col-7">Descuento (@Model.PorcentajeDescuento.ToString("N2")%)</dt><dd class="col-5 text-end">-@Model.MontoDescuento.ToString("N2") @Model.Moneda</dd>
+            <dt class="col-7">IVA (@Model.PorcentajeIva.ToString("N2")%)</dt><dd class="col-5 text-end">@Model.MontoIva.ToString("N2") @Model.Moneda</dd>
+            <dt class="col-7 fs-5 border-top pt-2">Total</dt><dd class="col-5 text-end fs-5 border-top pt-2">@Model.Total.ToString("N2") @Model.Moneda</dd>
+        </dl>
+    </div>
+</div>
+</div>
+
+<article class="quote-print-sheet" aria-label="Formato imprimible de cotización">
+    <div class="quote-print-classification">Classification: Internal</div>
+    <header class="quote-print-header">
+        <img src="~/images/netafim-logo.png" alt="Netafim" class="quote-print-logo" />
+        <div class="quote-print-number">
+            <h1>COTIZACIÓN</h1>
+            <div><strong>Cotización N°:</strong> @Model.Folio</div>
+            <div><strong>Página:</strong> 1 de 1</div>
+            <div><strong>Fecha impresión:</strong> <span id="quote-print-date"></span></div>
+            <div><strong>Hora impresión:</strong> <span id="quote-print-time"></span></div>
+        </div>
+    </header>
+
+    <section class="quote-print-information">
+        <div class="quote-print-parties">
+            <div class="quote-print-block">
+                <h2>Para:</h2>
+                <strong>@Model.NombreCliente</strong>
+                <div>@Model.DireccionCliente</div>
+            </div>
+            <div class="quote-print-block">
+                <h2>Dirección:</h2>
+                <strong>@Model.NombreCliente</strong>
+                <div>@Model.DireccionCliente</div>
+            </div>
+        </div>
+        <dl class="quote-print-metadata">
+            <dt>Elaboró:</dt><dd>@Model.NombreVendedor</dd>
+            <dt>Moneda:</dt><dd>@Model.Moneda</dd>
+            <dt>Tipo de cambio:</dt><dd>@(Model.TipoCambio?.ToString("N4") ?? "—")</dd>
+            <dt>Rep. Com:</dt><dd>@Model.NombreVendedor</dd>
+            <dt>No. Cliente:</dt><dd>@(Model.CodigoSapCliente ?? "—")</dd>
+            <dt>Ref. Cliente:</dt><dd>@(Model.ReferenciaCliente ?? "—")</dd>
+            <dt>Cultivo:</dt><dd>@(Model.Cultivo ?? "—")</dd>
+            <dt>Crop group:</dt><dd>@(Model.CropGroup ?? "—")</dd>
+        </dl>
+    </section>
+
+    <table class="quote-print-table">
+        <thead>
+            <tr>
+                <th>Línea</th>
+                <th>No. de Catálogo</th>
+                <th>Descripción</th>
+                <th>Clasificación</th>
+                <th class="text-end">Cantidad</th>
+                <th>Unidad</th>
+                <th class="text-end">Mínimo de compra</th>
+                <th class="text-end">Precio</th>
+                <th class="text-end">Importe</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for (var index = 0; index < Model.Detalles.Count; index++)
+        {
+            var linea = Model.Detalles.ElementAt(index);
+            <tr>
+                <td>@(index + 1)</td>
+                <td>@linea.CodigoCatalogo</td>
+                <td>@linea.DescripcionProducto</td>
+                <td>@(linea.Clasificacion ?? (linea.EsProductoTercero ? "Producto de terceros" : "—"))</td>
+                <td class="text-end">@linea.Cantidad.ToString("N3")</td>
+                <td>@linea.Unidad</td>
+                <td class="text-end">@(linea.CantidadMinimaTexto ?? "—")</td>
+                <td class="text-end">@linea.PrecioNetoUnitario.ToString("N4")</td>
+                <td class="text-end">@linea.ImporteNeto.ToString("N2")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <section class="quote-print-bottom">
+        <div class="quote-print-terms">
+            <p><strong>Esta cotización es válida hasta:</strong> @(Model.FechaVigencia?.ToLocalTime().ToString("d") ?? "Sin fecha definida")</p>
+            <p>Los precios se pueden modificar sin previo aviso.</p>
+        </div>
+        <dl class="quote-print-totals">
+            <dt>Subtotal</dt><dd>@Model.Subtotal.ToString("N2") @Model.Moneda</dd>
+            <dt>Descuento Esp. (@Model.PorcentajeDescuento.ToString("N2")%)</dt><dd>@Model.MontoDescuento.ToString("N2") @Model.Moneda</dd>
+            <dt>Total sin impuestos</dt><dd>@((Model.Subtotal - Model.MontoDescuento).ToString("N2")) @Model.Moneda</dd>
+            <dt>IVA/Impuestos (@Model.PorcentajeIva.ToString("N2")%)</dt><dd>@Model.MontoIva.ToString("N2") @Model.Moneda</dd>
+            <dt class="quote-print-grand-total">Total a pagar @Model.Moneda</dt>
+            <dd class="quote-print-grand-total">@Model.Total.ToString("N2") @Model.Moneda</dd>
+        </dl>
+    </section>
+
+    <section class="quote-print-signature">
+        <div>
+            <strong>Cotización aprobada</strong>
+            <span>Nombre y firma del cliente</span>
+        </div>
+        <div>
+            <span>Fecha de aceptación</span>
+        </div>
+    </section>
+    <div class="quote-print-classification quote-print-footer">Classification: Internal</div>
+</article>
+
+@section Scripts {
+    <script>
+        document.getElementById("export-quote-pdf").addEventListener("click", () => {
+            const now = new Date();
+            document.getElementById("quote-print-date").textContent = now.toLocaleDateString("es-MX");
+            document.getElementById("quote-print-time").textContent = now.toLocaleTimeString("es-MX");
+            window.print();
+        });
+    </script>
+}

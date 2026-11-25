@@ -1,0 +1,494 @@
+@model CotizadorIA.Models.CotizacionFormViewModel
+@{
+    ViewData["Title"] = "Nueva cotización";
+    var clientes = (IReadOnlyList<CotizadorIA.Models.Cliente>)ViewBag.Clientes;
+    var productos = (IReadOnlyList<CotizadorIA.Models.Producto>)ViewBag.Productos;
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-decoration-none">&larr; Volver a cotizaciones</a>
+    <h1 class="h3 mt-2 mb-1">Nueva cotización</h1>
+    <p class="text-muted small mb-0">La fecha inicia en hoy y puedes cambiarla. Los productos de terceros se cotizan sin factores ni descuentos.</p>
+</div>
+
+@if (clientes.Count == 0 || productos.Count == 0)
+{
+    <div class="alert alert-warning">
+        Para cotizar necesitas al menos un cliente activo y un producto de catálogo activo.
+        <div class="mt-2 d-flex gap-2">
+            @if (clientes.Count == 0)
+            {
+                <a asp-controller="Cliente" asp-action="Create" class="btn btn-sm btn-outline-dark">Crear cliente</a>
+            }
+            @if (productos.Count == 0)
+            {
+                <a asp-controller="Producto" asp-action="Create" class="btn btn-sm btn-outline-dark">Crear producto</a>
+            }
+        </div>
+    </div>
+}
+
+<form asp-action="Create" method="post" class="card card-body p-3 quote-form-compact" id="quote-form">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+    <p class="form-text mb-2">Los campos marcados con * son obligatorios.</p>
+    <div class="row g-2">
+        <div class="col-md-6">
+            <label asp-for="ClienteId" class="form-label">Cliente*</label>
+            <select asp-for="ClienteId" class="form-select form-select-sm">
+                <option value="0">Selecciona un cliente</option>
+                @foreach (var cliente in clientes)
+                {
+                    <option value="@cliente.Id">@cliente.Nombre (@(cliente.CodigoSap ?? "Sin código SAP"))</option>
+                }
+            </select>
+            <span asp-validation-for="ClienteId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="FechaCotizacion" class="form-label">Fecha de cotización*</label>
+            <input asp-for="FechaCotizacion" asp-format="{0:yyyy-MM-dd}" class="form-control form-control-sm" type="date" />
+            <span asp-validation-for="FechaCotizacion" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="TipoCambio" class="form-label">Tipo de cambio*</label>
+            <input asp-for="TipoCambio" class="form-control form-control-sm" type="number" min="0.000001" step="0.000001" />
+            <span asp-validation-for="TipoCambio" class="text-danger"></span>
+            @if (ViewBag.TipoCambioInfo is string tipoCambioInfo)
+            {
+                <div class="form-text">@tipoCambioInfo</div>
+            }
+            @if (ViewBag.TipoCambioWarning is string tipoCambioWarning)
+            {
+                <div class="form-text text-warning">@tipoCambioWarning</div>
+            }
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Cultivo" class="form-label">Cultivo*</label>
+            <input asp-for="Cultivo" class="form-control form-control-sm" maxlength="100" />
+            <span asp-validation-for="Cultivo" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CropGroup" class="form-label">Crop group*</label>
+            <input asp-for="CropGroup" class="form-control form-control-sm" maxlength="100" />
+            <span asp-validation-for="CropGroup" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-info w-100 mb-0 py-2 px-3 h-100 d-flex align-items-center small">
+                La cotización quedará asociada a tu cuenta: <strong class="ms-1">@User.Identity?.Name</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="PorcentajeDescuento" class="form-label">Descuento solicitado (%)</label>
+            <input asp-for="PorcentajeDescuento" class="form-control form-control-sm" type="number" min="0" max="20" step="0.01" />
+            <span asp-validation-for="PorcentajeDescuento" class="text-danger"></span>
+            <div class="form-text small">Solo se aplicará si cumple las reglas comerciales.</div>
+        </div>
+        <div class="col-md-3 d-flex flex-column justify-content-center gap-2">
+            <div class="form-check">
+                <input asp-for="AplicarIva" class="form-check-input" />
+                <label asp-for="AplicarIva" class="form-check-label">Aplicar IVA (16 %)</label>
+            </div>
+            <div class="form-check">
+                <input asp-for="ProyectoGrowSphere" class="form-check-input" />
+                <label asp-for="ProyectoGrowSphere" class="form-check-label">Proyecto GrowSphere</label>
+            </div>
+        </div>
+        <div class="col-12">
+            <label class="form-label mb-1" for="product-search">Buscar por SKU o descripción</label>
+            <input id="product-search" class="form-control form-control-sm" type="search" placeholder="Escribe el SKU o parte de la descripción" autocomplete="off" />
+        </div>
+        <div class="col-12">
+            <div class="row g-2 align-items-stretch">
+                <div class="col-md-9">
+                    <div id="product-list" class="border rounded p-2 overflow-auto quote-product-list" aria-label="Productos disponibles">
+                        @foreach (var producto in productos)
+                        {
+                            <div class="product-option form-check py-0"
+                                 data-sku="@producto.CodigoCatalogo"
+                                 data-description="@producto.Descripcion">
+                                <input class="form-check-input product-checkbox"
+                                       type="checkbox"
+                                       id="product-@producto.Id"
+                                       value="@producto.Id"
+                                       data-sku="@producto.CodigoCatalogo"
+                                       data-description="@producto.Descripcion"
+                                       data-unit="@producto.Unidad"
+                                       data-price="@producto.PrecioLista.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                <label class="form-check-label" for="product-@producto.Id">
+                                    <span class="fw-semibold">@producto.CodigoCatalogo</span>
+                                    <span> — @producto.Descripcion</span>
+                                </label>
+                            </div>
+                        }
+                        <p id="no-products-match" class="small text-muted mb-0 d-none">No se encontraron productos para esa búsqueda.</p>
+                    </div>
+                    <nav class="mt-1 text-center" aria-label="Paginación de productos">
+                        <div id="product-pagination" class="d-flex justify-content-center align-items-center gap-1" role="group" aria-label="Páginas de productos"></div>
+                        <span id="product-page-status" class="small text-muted" aria-live="polite"></span>
+                    </nav>
+                    <div class="form-text small">Marca uno o varios productos y agrégalos juntos.</div>
+                </div>
+                <div class="col-md-3 d-flex justify-content-md-end">
+                    <div class="d-flex align-items-center justify-content-md-end quote-product-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-selected-products" disabled="@(productos.Count == 0)">
+                            Agregar seleccionados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 text-end">
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                id="toggle-third-party"
+                aria-expanded="false"
+                aria-controls="third-party-panel">
+            Agregar producto de terceros
+        </button>
+        <div id="third-party-panel" class="border rounded p-3 mt-2 d-none text-start">
+            <h2 class="h6 mb-1">Producto de terceros</h2>
+            <p class="small text-muted mb-2">Solo se agrega a esta cotización. El costo capturado se cotiza directamente, sin factores ni descuentos; únicamente puede aplicarse IVA.</p>
+            <div class="row g-2 align-items-end">
+            <div class="col-sm-3">
+                    <label for="third-party-sku" class="form-label">SKU*</label>
+                <input id="third-party-sku" class="form-control form-control-sm" maxlength="50" required />
+            </div>
+            <div class="col-sm-4">
+                <label for="third-party-description" class="form-label">Descripción*</label>
+                <input id="third-party-description" class="form-control form-control-sm" maxlength="500" required />
+            </div>
+            <div class="col-sm-2">
+                <label for="third-party-unit" class="form-label">Unidad*</label>
+                <input id="third-party-unit" class="form-control form-control-sm" maxlength="20" value="PZA" required />
+            </div>
+            <div class="col-sm-2">
+                <label for="third-party-cost" class="form-label">Costo unitario*</label>
+                <input id="third-party-cost" class="form-control form-control-sm" type="number" min="0" step="0.0001" required />
+            </div>
+            <div class="col-sm-1">
+                <label for="third-party-quantity" class="form-label">Cant.*</label>
+                <input id="third-party-quantity" class="form-control form-control-sm" type="number" min="0.001" step="0.001" value="1" required />
+            </div>
+            <div class="col-12">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="add-third-party">Agregar a la cotización</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-3" />
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h2 class="h6 mb-0">Productos en la cotización*</h2>
+            <span asp-validation-for="Lineas" class="text-danger"></span>
+        </div>
+        <span class="text-muted small" id="line-count">0 productos</span>
+    </div>
+
+    <div id="quote-lines" class="vstack gap-1">
+        @for (var index = 0; index < Model.Lineas.Count; index++)
+        {
+            var linea = Model.Lineas[index];
+            var productoSeleccionado = linea.ProductoId.HasValue
+                ? productos.FirstOrDefault(x => x.Id == linea.ProductoId.Value)
+                : null;
+            var textoProducto = linea.EsTercero
+                ? $"{linea.CodigoCatalogo} — {linea.DescripcionProducto}"
+                : productoSeleccionado is null
+                    ? linea.DescripcionProducto
+                    : $"{productoSeleccionado.CodigoCatalogo} — {productoSeleccionado.Descripcion}";
+            <div class="quote-line border rounded p-2" data-index="@index">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-7">
+                        <strong class="line-title">@textoProducto</strong>
+                        <div class="small text-muted line-subtitle">
+                            @(linea.EsTercero ? "Producto de terceros" : "Producto de catálogo")
+                            @if (linea.EsTercero)
+                            {
+                                <span> · Costo base: @(linea.PrecioBase?.ToString("N4") ?? "—")</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cantidad*</label>
+                        <input name="Lineas[@index].Cantidad" value="@linea.Cantidad" class="form-control form-control-sm" type="number" min="0.001" step="0.001" />
+                        <span class="text-danger" data-valmsg-for="Lineas[@index].Cantidad"></span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-line">Quitar</button>
+                    </div>
+                </div>
+                <input type="hidden" name="Lineas[@index].EsTercero" value="@linea.EsTercero.ToString().ToLowerInvariant()" />
+                <input type="hidden" name="Lineas[@index].ProductoId" value="@linea.ProductoId" />
+                <input type="hidden" name="Lineas[@index].CodigoCatalogo" value="@linea.CodigoCatalogo" />
+                <input type="hidden" name="Lineas[@index].DescripcionProducto" value="@linea.DescripcionProducto" />
+                <input type="hidden" name="Lineas[@index].Unidad" value="@linea.Unidad" />
+                <input type="hidden" name="Lineas[@index].PrecioBase" value="@linea.PrecioBase" />
+            </div>
+        }
+    </div>
+    <p id="empty-lines" class="text-muted small mt-1 mb-0 @(Model.Lineas.Count == 0 ? "" : "d-none")">
+        Aún no agregas productos a esta cotización.
+    </p>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-sm btn-primary" disabled="@(clientes.Count == 0)">
+            Calcular y guardar cotización
+        </button>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const form = document.getElementById("quote-form");
+            const productList = document.getElementById("product-list");
+            const lines = document.getElementById("quote-lines");
+            const emptyMessage = document.getElementById("empty-lines");
+            const lineCount = document.getElementById("line-count");
+            const productPageSize = 10;
+            let productPage = 0;
+
+            function renderProductPage() {
+                const query = document.getElementById("product-search").value.trim().toLocaleLowerCase();
+                const matchingProducts = Array.from(productList.querySelectorAll(".product-option"))
+                    .filter(row => row.dataset.sku.toLocaleLowerCase().includes(query)
+                        || row.dataset.description.toLocaleLowerCase().includes(query));
+                const pageCount = Math.ceil(matchingProducts.length / productPageSize);
+                productPage = Math.min(productPage, Math.max(pageCount - 1, 0));
+
+                productList.querySelectorAll(".product-option").forEach(row => row.classList.add("d-none"));
+                matchingProducts
+                    .slice(productPage * productPageSize, (productPage + 1) * productPageSize)
+                    .forEach(row => row.classList.remove("d-none"));
+
+                document.getElementById("no-products-match").classList.toggle("d-none", matchingProducts.length > 0);
+                document.getElementById("product-page-status").textContent = matchingProducts.length === 0
+                    ? "0 productos"
+                    : `${productPage * productPageSize + 1}-${Math.min((productPage + 1) * productPageSize, matchingProducts.length)} de ${matchingProducts.length}`;
+
+                const pagination = document.getElementById("product-pagination");
+                pagination.replaceChildren();
+                if (pageCount === 0) {
+                    return;
+                }
+
+                function addPageButton(label, page, options = {}) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = `btn btn-sm ${options.active ? "btn-primary" : "btn-outline-secondary"} quote-page-button`;
+                    button.textContent = label;
+                    button.disabled = options.disabled ?? false;
+                    if (options.active) {
+                        button.setAttribute("aria-current", "page");
+                    }
+                    button.setAttribute("aria-label", options.label ?? `Página ${page + 1}`);
+                    button.addEventListener("click", () => {
+                        productPage = page;
+                        renderProductPage();
+                    });
+                    pagination.append(button);
+                }
+
+                addPageButton("‹", Math.max(productPage - 1, 0), {
+                    disabled: productPage === 0,
+                    label: "Página anterior"
+                });
+
+                let pageItems;
+                if (pageCount <= 5) {
+                    pageItems = Array.from({ length: pageCount }, (_, index) => index);
+                } else if (productPage <= 2) {
+                    pageItems = [0, 1, 2, "ellipsis", pageCount - 1];
+                } else if (productPage >= pageCount - 3) {
+                    pageItems = [0, "ellipsis", pageCount - 3, pageCount - 2, pageCount - 1];
+                } else {
+                    pageItems = [0, "ellipsis", productPage - 1, productPage, productPage + 1, "ellipsis", pageCount - 1];
+                }
+
+                pageItems.forEach(page => {
+                    if (page === "ellipsis") {
+                        const ellipsis = document.createElement("span");
+                        ellipsis.className = "px-1 text-muted";
+                        ellipsis.textContent = "…";
+                        pagination.append(ellipsis);
+                    } else {
+                        addPageButton(String(page + 1), page, { active: page === productPage });
+                    }
+                });
+
+                addPageButton("›", Math.min(productPage + 1, pageCount - 1), {
+                    disabled: productPage >= pageCount - 1,
+                    label: "Página siguiente"
+                });
+            }
+
+            function hiddenInput(name, value) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                input.value = value ?? "";
+                return input;
+            }
+
+            function updateLineCount() {
+                const count = lines.querySelectorAll(".quote-line").length;
+                lineCount.textContent = `${count} ${count === 1 ? "producto" : "productos"}`;
+                emptyMessage.classList.toggle("d-none", count > 0);
+            }
+
+            function reindexLines() {
+                lines.querySelectorAll(".quote-line").forEach((row, index) => {
+                    row.dataset.index = index;
+                    row.querySelectorAll("[name]").forEach((input) => {
+                        input.name = input.name.replace(/Lineas\[\d+\]/, `Lineas[${index}]`);
+                    });
+                    row.querySelectorAll("[data-valmsg-for]").forEach((message) => {
+                        message.dataset.valmsgFor = message.dataset.valmsgFor.replace(/Lineas\[\d+\]/, `Lineas[${index}]`);
+                    });
+                });
+                updateLineCount();
+            }
+
+            function addLine(details) {
+                const existing = Array.from(lines.querySelectorAll('.quote-line input[name$=".ProductoId"]'))
+                    .some(input => !details.esTercero && input.value === String(details.productoId));
+                if (existing) {
+                    return;
+                }
+
+                const index = lines.querySelectorAll(".quote-line").length;
+                const row = document.createElement("div");
+                row.className = "quote-line border rounded p-2";
+                const rowContent = document.createElement("div");
+                rowContent.className = "row g-2 align-items-center";
+
+                const titleColumn = document.createElement("div");
+                titleColumn.className = "col-md-7";
+                const title = document.createElement("strong");
+                title.className = "line-title";
+                title.textContent = `${details.sku} — ${details.description}`;
+                const subtitle = document.createElement("div");
+                subtitle.className = "small text-muted line-subtitle";
+                subtitle.textContent = details.esTercero
+                    ? `Producto de terceros · Costo base: ${Number(details.price).toFixed(4)}`
+                    : "Producto de catálogo";
+                titleColumn.append(title, subtitle);
+
+                const quantityColumn = document.createElement("div");
+                quantityColumn.className = "col-md-3";
+                const quantityLabel = document.createElement("label");
+                quantityLabel.className = "form-label";
+                quantityLabel.textContent = "Cantidad*";
+                const quantity = document.createElement("input");
+                quantity.type = "number";
+                quantity.min = "0.001";
+                quantity.step = "0.001";
+                quantity.value = details.quantity ?? "1";
+                quantity.className = "form-control form-control-sm";
+                quantity.name = `Lineas[${index}].Cantidad`;
+                quantityColumn.append(quantityLabel, quantity);
+
+                const removeColumn = document.createElement("div");
+                removeColumn.className = "col-md-2 text-end";
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "btn btn-sm btn-outline-danger remove-line";
+                removeButton.textContent = "Quitar";
+                removeColumn.append(removeButton);
+                rowContent.append(titleColumn, quantityColumn, removeColumn);
+                row.append(rowContent);
+                row.append(
+                    hiddenInput(`Lineas[${index}].EsTercero`, details.esTercero ? "true" : "false"),
+                    hiddenInput(`Lineas[${index}].ProductoId`, details.productoId ?? ""),
+                    hiddenInput(`Lineas[${index}].CodigoCatalogo`, details.sku),
+                    hiddenInput(`Lineas[${index}].DescripcionProducto`, details.description),
+                    hiddenInput(`Lineas[${index}].Unidad`, details.unit),
+                    hiddenInput(`Lineas[${index}].PrecioBase`, details.price ?? "0"));
+                lines.append(row);
+                updateLineCount();
+            }
+
+            document.getElementById("product-search").addEventListener("input", (event) => {
+                productPage = 0;
+                renderProductPage();
+            });
+
+            document.getElementById("add-selected-products").addEventListener("click", () => {
+                productList.querySelectorAll(".product-checkbox:checked").forEach((checkbox) => {
+                    addLine({
+                        esTercero: false,
+                        productoId: checkbox.value,
+                        sku: checkbox.dataset.sku,
+                        description: checkbox.dataset.description,
+                        unit: checkbox.dataset.unit,
+                        price: checkbox.dataset.price,
+                        quantity: "1"
+                    });
+                    checkbox.checked = false;
+                });
+            });
+
+            const thirdPartyPanel = document.getElementById("third-party-panel");
+            const thirdPartyToggle = document.getElementById("toggle-third-party");
+            thirdPartyToggle.addEventListener("click", () => {
+                const mostrar = thirdPartyPanel.classList.contains("d-none");
+                thirdPartyPanel.classList.toggle("d-none", !mostrar);
+                thirdPartyToggle.setAttribute("aria-expanded", String(mostrar));
+                if (mostrar) {
+                    document.getElementById("third-party-sku").focus();
+                }
+            });
+
+            document.getElementById("add-third-party").addEventListener("click", () => {
+                const sku = document.getElementById("third-party-sku");
+                const description = document.getElementById("third-party-description");
+                const unit = document.getElementById("third-party-unit");
+                const price = document.getElementById("third-party-cost");
+                const quantity = document.getElementById("third-party-quantity");
+
+                if (!sku.value.trim() || !description.value.trim() || !unit.value.trim()
+                    || price.value === "" || Number(price.value) < 0
+                    || quantity.value === "" || Number(quantity.value) <= 0) {
+                    [sku, description, unit, price, quantity].forEach(input => input.reportValidity());
+                    return;
+                }
+
+                addLine({
+                    esTercero: true,
+                    sku: sku.value.trim(),
+                    description: description.value.trim(),
+                    unit: unit.value.trim(),
+                    price: price.value,
+                    quantity: quantity.value
+                });
+                sku.value = "";
+                description.value = "";
+                price.value = "";
+                quantity.value = "1";
+            });
+
+            lines.addEventListener("click", (event) => {
+                const button = event.target.closest(".remove-line");
+                if (button) {
+                    button.closest(".quote-line").remove();
+                    reindexLines();
+                }
+            });
+
+            form.addEventListener("wheel", (event) => {
+                const numberInput = event.target.closest('input[type="number"]');
+                if (numberInput) {
+                    numberInput.blur();
+                }
+            });
+
+            form.addEventListener("submit", reindexLines);
+            renderProductPage();
+            updateLineCount();
+        })();
+    </script>
+}

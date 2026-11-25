@@ -7,13 +7,25 @@ namespace CotizadorIA.Data;
 public class RolData
 {
 
-    public static async Task InicializarAsync(ApplicationDbContext db)
+    private readonly ApplicationDbContext _context;
+
+    public RolData(ApplicationDbContext context)
     {
-        if (!await db.Rol.AnyAsync())
+        _context = context;
+    }
+
+    public async Task<List<Rol>> ObtenerRoles()
+    {
+        return await _context.Rol.ToListAsync();
+    }
+
+    public  async Task InicializarAsync()
+    {
+        if (!await _context.Rol.AnyAsync())
         {
             var ahora = DateTime.UtcNow;
 
-            db.Rol.AddRange(new Rol
+            _context.Rol.AddRange(new Rol
             {
                 Nombre = "Administrador",
                 Descripcion = "Acceso completo al sistema",
@@ -47,8 +59,9 @@ public class RolData
             }
             );
 
-            await db.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
     }
 
+   
 }

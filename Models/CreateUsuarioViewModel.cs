@@ -21,4 +21,7 @@ public class CreateUsuarioViewModel
 
     [Range(1, int.MaxValue, ErrorMessage = "Debes seleccionar un rol.")]
     public int RolId { get; set; }
+
+    public DateTime FechaCreacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
 }

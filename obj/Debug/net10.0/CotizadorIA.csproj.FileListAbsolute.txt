@@ -21,7 +21,6 @@ C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\rjsmcshtml.dswa.cache
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\scopedcss\bundle\CotizadorIA.styles.css
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\scopedcss\projectbundle\CotizadorIA.bundle.scp.css
-C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\compressed\2078oiv10y-{0}-b9sayid5wm-b9sayid5wm.gz
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\compressed\pcacbma5gw-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\compressed\6ubjid8kdm-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\compressed\c5i6t8mg77-{0}-bqjiyaj88i-bqjiyaj88i.gz
@@ -284,3 +283,13 @@ C:\Users\j12115947\Documents\CotizadorIA\obj\validation\ru\Microsoft.CodeAnalysi
 C:\Users\j12115947\Documents\CotizadorIA\obj\validation\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\j12115947\Documents\CotizadorIA\obj\validation\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\j12115947\Documents\CotizadorIA\obj\validation\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\j12115947\Documents\CotizadorIA\obj\Debug\net10.0\compressed\2078oiv10y-{0}-guwv7paick-guwv7paick.gz
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\appsettings.Development.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\appsettings.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.staticwebassets.runtime.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.staticwebassets.endpoints.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.exe
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.deps.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.runtimeconfig.json
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.dll
+C:\Users\j12115947\AppData\Local\Temp\CotizadorIA-asterisk-verify-d1cb7c41\CotizadorIA.pdb

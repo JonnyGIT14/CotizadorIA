@@ -5,30 +5,37 @@ namespace CotizadorIA.Data;
 
 public class UsuarioData
 {
-    public static async Task InicializarAsync(ApplicationDbContext db)
+    private readonly ApplicationDbContext _context;
+    
+    public UsuarioData(ApplicationDbContext context)
     {
-        if (!db.Usuarios.Any())
-        {
-            var rolAdmin = await db.Rol.FirstOrDefaultAsync(r => r.Nombre == "Administrador");
-            if (rolAdmin != null)
-            {
-                var ahora = DateTime.UtcNow;
-
-                var usuarioAdmin = new Usuario
-                {
-                    Nombre = "Admin",
-                    ApellidoPaterno = "User",
-                    ApellidoMaterno = null,
-                    Email = "admin@example.com",
-                    Password = "password",
-                    Activo = true,
-                    FechaCreacion = ahora,
-                    FechaModificacion = ahora,
-                    RolId = rolAdmin.Id
-                };
-                db.Usuarios.Add(usuarioAdmin);
-                await db.SaveChangesAsync();
-            }
-        }
+        _context = context;
     }
+
+    //Create un nuevo usuario a la base de datos
+    public  async Task<Usuario> CreateUsuario( CreateUsuarioViewModel usuario)
+    {
+       var User = new Usuario
+        {
+            Nombre = usuario.Nombre,
+            ApellidoPaterno = usuario.ApellidoPaterno,
+            ApellidoMaterno = usuario.ApellidoMaterno,
+            Email = usuario.Email,
+            Password = usuario.Password,
+            RolId = usuario.RolId,
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow,
+            FechaModificacion = DateTime.UtcNow
+        };
+
+        _context.Usuarios.Add(User);
+        await _context.SaveChangesAsync();
+        return User;
+    }
+
+    public async Task<List<Usuario>> ObtenerUsuarios()
+    {
+        return await _context.Usuarios.ToListAsync();
+    }
+
 }

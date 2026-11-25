@@ -17,4 +17,14 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Rol> Rol { get; set; }
     public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<FamiliaProducto> FamiliasProducto => Set<FamiliaProducto>();
+    public DbSet<SubfamiliaProducto> SubfamiliasProducto => Set<SubfamiliaProducto>();
+    public DbSet<Cotizacion> Cotizaciones => Set<Cotizacion>();
+    public DbSet<CotizacionDetalle> CotizacionesDetalle => Set<CotizacionDetalle>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyCatalogoConfigurations();
+    }
 }

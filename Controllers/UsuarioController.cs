@@ -1,88 +1,52 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 using CotizadorIA.Data;
 using CotizadorIA.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CotizadorIA.Controllers;
 
+[Authorize(Roles = "Administrador")]
 public class UsuarioController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly UsuarioData _usuarioData;
+    private readonly RolData _rolData;
 
-    public UsuarioController(ApplicationDbContext db)
+    public UsuarioController(RolData rolData, UsuarioData usuarioData)
     {
-        _db = db;
+        _rolData = rolData;
+        _usuarioData = usuarioData;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Create()
+    private async Task CargarRoles()
     {
-        await LoadRolesAsync();
+        var roles = await _rolData.ObtenerRoles();
+        ViewBag.Roles = new SelectList(roles, "Id", "Nombre");
+    }
+
+    // GET: Usuario/Create
+    public async Task<IActionResult> CreateUser()
+    {
+        await CargarRoles();
+
         return View(new CreateUsuarioViewModel());
     }
 
+    // POST: Usuario/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateUsuarioViewModel model)
+    public async Task<IActionResult> CreateUser(CreateUsuarioViewModel model)
     {
-        if (ModelState.IsValid)
-        {
-            var rol = await _db.Rol
-                .AsNoTracking()
-                .SingleOrDefaultAsync(rol => rol.Id == model.RolId);
-
-            if (rol is null)
-            {
-                ModelState.AddModelError(nameof(model.RolId), "El rol seleccionado no existe en la base de datos.");
-            }
-            else if (!rol.Activo)
-            {
-                ModelState.AddModelError(nameof(model.RolId), "El rol seleccionado está inactivo.");
-            }
-
-            if (await _db.Usuarios.AnyAsync(usuario => usuario.Email == model.Email))
-            {
-                ModelState.AddModelError(nameof(model.Email), "Ya existe un usuario con ese correo.");
-            }
-        }
-
         if (!ModelState.IsValid)
         {
-            await LoadRolesAsync();
+            await CargarRoles();
             return View(model);
         }
 
-        var ahora = DateTime.UtcNow;
-        var usuario = new Usuario
-        {
-            Nombre = model.Nombre,
-            ApellidoPaterno = model.ApellidoPaterno,
-            ApellidoMaterno = model.ApellidoMaterno,
-            Email = model.Email,
-            Password = model.Password,
-            RolId = model.RolId,
-            Activo = true,
-            FechaCreacion = ahora,
-            FechaModificacion = ahora
-        };
-
-        _db.Usuarios.Add(usuario);
-        await _db.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Create));
+        await _usuarioData.CreateUsuario(model);
+        TempData["SuccessMessage"] = "Usuario creado exitosamente.";
+        return RedirectToAction(nameof(CreateUser));
     }
 
-    private async Task LoadRolesAsync()
-    {
-        ViewBag.Roles = new SelectList(
-            await _db.Rol
-                .AsNoTracking()
-                .Where(rol => rol.Activo)
-                .OrderBy(rol => rol.Nombre)
-                .ToListAsync(),
-            nameof(Rol.Id),
-            nameof(Rol.Nombre));
-    }
 }

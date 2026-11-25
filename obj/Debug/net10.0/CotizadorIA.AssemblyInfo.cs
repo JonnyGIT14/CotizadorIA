@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CotizadorIA")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+082510d5f8193d685d3505372e01f083d1dcba2a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+86a02b21f7947bbb735a82d94beccec0b9051987")]
 [assembly: System.Reflection.AssemblyProductAttribute("CotizadorIA")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CotizadorIA")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

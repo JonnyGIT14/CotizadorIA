@@ -1,0 +1,62 @@
+@model CreateUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Crear usuario";
+}
+
+<div class="mb-4">
+    <a asp-controller="Dashboard" asp-action="Index" class="text-decoration-none">&larr; Volver al panel</a>
+    <h1 class="h2 mt-2">Crear usuario</h1>
+    <p class="text-muted">Registra una cuenta y asigna el rol que definirá sus permisos.</p>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<form method="post" asp-controller="Usuario" asp-action="CreateUser" class="card card-body">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="Nombre" class="form-label">Nombre</label>
+            <input asp-for="Nombre" class="form-control" autocomplete="given-name" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ApellidoPaterno" class="form-label">Apellido paterno</label>
+            <input asp-for="ApellidoPaterno" class="form-control" autocomplete="family-name" />
+            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ApellidoMaterno" class="form-label">Apellido materno (opcional)</label>
+            <input asp-for="ApellidoMaterno" class="form-control" />
+            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Email" class="form-label">Correo electrónico</label>
+            <input asp-for="Email" class="form-control" type="email" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Password" class="form-label">Contraseña</label>
+            <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="RolId" class="form-label">Rol</label>
+            <select asp-for="RolId" asp-items="ViewBag.Roles" class="form-select">
+                <option value="0">Selecciona un rol</option>
+            </select>
+            <span asp-validation-for="RolId" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Guardar usuario</button>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

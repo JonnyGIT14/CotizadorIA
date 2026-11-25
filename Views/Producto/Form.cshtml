@@ -1,0 +1,97 @@
+@model CotizadorIA.Models.ProductoFormViewModel
+@{
+    var editando = Model.Id > 0;
+    ViewData["Title"] = editando ? "Editar producto" : "Nuevo producto";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none">&larr; Volver a productos</a>
+    <h1 class="h2 mt-2">@(editando ? "Editar producto" : "Nuevo producto")</h1>
+    <p class="text-muted">Los productos se organizan por familia y subfamilia.</p>
+</div>
+
+<form asp-action="@(editando ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" class="card card-body">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <input asp-for="Id" type="hidden" />
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="CodigoCatalogo" class="form-label">SKU / código</label>
+            <input asp-for="CodigoCatalogo" class="form-control" />
+            <span asp-validation-for="CodigoCatalogo" class="text-danger"></span>
+        </div>
+        <div class="col-md-8">
+            <label asp-for="Descripcion" class="form-label">Descripción</label>
+            <input asp-for="Descripcion" class="form-control" />
+            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Familia" class="form-label">Familia</label>
+            <input asp-for="Familia" class="form-control" />
+            <span asp-validation-for="Familia" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Subfamilia" class="form-label">Subfamilia</label>
+            <input asp-for="Subfamilia" class="form-control" />
+            <span asp-validation-for="Subfamilia" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Clasificacion" class="form-label">Clasificación</label>
+            <input asp-for="Clasificacion" class="form-control" />
+            <span asp-validation-for="Clasificacion" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Unidad" class="form-label">Unidad</label>
+            <input asp-for="Unidad" class="form-control" />
+            <span asp-validation-for="Unidad" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PrecioLista" class="form-label">Precio de lista (USD)</label>
+            <input asp-for="PrecioLista" class="form-control" type="number" min="0" step="0.0001" />
+            <span asp-validation-for="PrecioLista" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SemanasEntrega" class="form-label">Semanas de entrega</label>
+            <input asp-for="SemanasEntrega" class="form-control" type="number" min="0" step="0.01" />
+            <span asp-validation-for="SemanasEntrega" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CantidadMinima" class="form-label">Cantidad mínima</label>
+            <input asp-for="CantidadMinima" class="form-control" type="number" min="0" step="0.001" />
+            <span asp-validation-for="CantidadMinima" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CantidadMinimaTexto" class="form-label">Mínimo mostrado (opcional)</label>
+            <input asp-for="CantidadMinimaTexto" class="form-control" />
+            <span asp-validation-for="CantidadMinimaTexto" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Calibre" class="form-label">Calibre</label>
+            <input asp-for="Calibre" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Caudal" class="form-label">Caudal</label>
+            <input asp-for="Caudal" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Espaciamiento" class="form-label">Espaciamiento</label>
+            <input asp-for="Espaciamiento" class="form-control" />
+        </div>
+        @if (editando)
+        {
+            <div class="col-12">
+                <div class="form-check">
+                    <input asp-for="Activo" class="form-check-input" />
+                    <label asp-for="Activo" class="form-check-label">Producto activo</label>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
